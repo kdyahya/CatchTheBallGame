@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Catch the Ball Game</title>
+    <style>
+        body {
+            text-align: center;
+            font-family: Arial, sans-serif;
+            background: linear-gradient(to right, #4facfe, #00f2fe);
+            color: white;
+        }
+        canvas {
+            background: rgba(255, 255, 255, 0.3);
+            display: block;
+            margin: auto;
+            border-radius: 15px;
+        }
+        #startButton, #restartButton {
+            margin-top: 10px;
+            padding: 12px 25px;
+            font-size: 18px;
+            border: none;
+            border-radius: 25px;
+            background: #ff4081;
+            color: white;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+        #startButton:hover, #restartButton:hover {
+            background: #e91e63;
+        }
+        #gameOverMessage {
+            display: none;
+            font-size: 22px;
+            color: yellow;
+            margin-top: 15px;
+            font-weight: bold;
+        }
+        #score {
+            font-size: 20px;
+            margin-top: 10px;
+            font-weight: bold;
+        }
+        #nameInput {
+            margin-top: 10px;
+            padding: 8px;
+            font-size: 18px;
+            border-radius: 10px;
+            border: none;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <h2>🎮 Catch the Ball Game 🎾</h2>
+    <p>Move the paddle left and right to catch the ball!</p>
+    <input type="text" id="nameInput" placeholder="Enter your name">
+    <p id="score">Score: 0</p>
+    <canvas id="gameCanvas" width="400" height="400"></canvas>
+    <p id="gameOverMessage"></p>
+    <button id="startButton">Start Game</button>
+    
+    <script>
+        const canvas = document.getElementById("gameCanvas");
+        const ctx = canvas.getContext("2d");
+        let ballX, ballY, ballSpeedX, ballSpeedY, score;
+        const ballRadius = 10, paddleHeight = 10, paddleWidth = 75;
+        let paddleX, rightPressed = false, leftPressed = false, gameRunning = false;
+
+        document.addEventListener("keydown", keyDownHandler);
+        document.addEventListener("keyup", keyUpHandler);
+        document.getElementById("startButton").addEventListener("click", startGame);
+
+        function keyDownHandler(e) {
+            if (e.key === "Right" || e.key === "ArrowRight") rightPressed = true;
+            else if (e.key === "Left" || e.key === "ArrowLeft") leftPressed = true;
+        }
+
+        function keyUpHandler(e) {
+            if (e.key === "Right" || e.key === "ArrowRight") rightPressed = false;
+            else if (e.key === "Left" || e.key === "ArrowLeft") leftPressed = false;
+        }
+
+        function startGame() {
+            document.getElementById("startButton").style.display = "none";
+            document.getElementById("gameOverMessage").style.display = "none";
+            
+            ballX = canvas.width / 2;
+            ballY = canvas.height - 30;
+            ballSpeedX = 2;
+            ballSpeedY = -2;
+            paddleX = (canvas.width - paddleWidth) / 2;
+            score = 0;
+            document.getElementById("score").textContent = "Score: " + score;
+            gameRunning = true;
+            draw();
+        }
+
+        function drawBall() {
+            ctx.beginPath();
+            ctx.arc(ballX, ballY, ballRadius, 0, Math.PI * 2);
+            ctx.fillStyle = "red";
+            ctx.fill();
+            ctx.closePath();
+        }
+
+        function drawPaddle() {
+            ctx.beginPath();
+            ctx.rect(paddleX, canvas.height - paddleHeight, paddleWidth, paddleHeight);
+            ctx.fillStyle = "blue";
+            ctx.fill();
+            ctx.closePath();
+        }
+
+        function draw() {
+            if (!gameRunning) return;
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            drawBall();
+            drawPaddle();
+
+            if (ballX + ballSpeedX > canvas.width - ballRadius || ballX + ballSpeedX < ballRadius) {
+                ballSpeedX = -ballSpeedX;
+            }
+            if (ballY + ballSpeedY < ballRadius) {
+                ballSpeedY = -ballSpeedY;
+            } else if (ballY + ballSpeedY > canvas.height - ballRadius) {
+                if (ballX > paddleX && ballX < paddleX + paddleWidth) {
+                    ballSpeedY = -ballSpeedY;
+                    score++;
+                    document.getElementById("score").textContent = "Score: " + score;
+                } else {
+                    gameRunning = false;
+                    let playerName = document.getElementById("nameInput").value || "Player";
+                    let message;
+                    if (score === 0) {
+                        message = `Thank you ${playerName}, your score is ${score} - Try again, you can do it next time!`;
+                    } else if (score < 10) {
+                        message = `Thank you ${playerName}, your score is ${score} - You did a great score, keep going on!`;
+                    } else {
+                        message = `Thank you ${playerName}, your score is ${score} - Amazing, you are great!`;
+                    }
+                    document.getElementById("gameOverMessage").textContent = message;
+                    document.getElementById("gameOverMessage").style.display = "block";
+                    document.getElementById("startButton").style.display = "inline";
+                }
+            }
+
+            if (rightPressed && paddleX < canvas.width - paddleWidth) {
+                paddleX += 7;
+            } else if (leftPressed && paddleX > 0) {
+                paddleX -= 7;
+            }
+
+            ballX += ballSpeedX;
+            ballY += ballSpeedY;
+            requestAnimationFrame(draw);
+        }
+    </script>
+</body>
+</html>
